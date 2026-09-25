@@ -16,5 +16,5 @@ class UserCompetencyProgress(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
 
     __table_args__ = (
-        CheckConstraint('score >= 0', name='ck_user_competency_progress_score_non_negative')
+        CheckConstraint('score >= 0', name='ck_user_competency_progress_score_non_negative'),
     )

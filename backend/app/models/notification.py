@@ -33,5 +33,5 @@ class Notification(Base):
             'ix_notifications_user_id_read_at',
             'user_id',
             'read_at'
-        )
+        ),
     )

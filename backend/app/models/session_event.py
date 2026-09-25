@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from enum import Enum
+from typing import Any
 
 from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, func, text
 from sqlalchemy import Enum as SQLEnum
@@ -30,8 +31,8 @@ class SessionEvent(Base):
         SQLEnum(SessionEventTypes, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
     )
-    effects: Mapped[JSONB] = mapped_column(nullable=False, server_default=text("'{}'::jsonb"))
-    competency_effects: Mapped[JSONB] = mapped_column(nullable=False, server_default=text("'[]'::jsonb"))
+    effects: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    competency_effects: Mapped[list] = mapped_column(JSONB, nullable=False, server_default=text("'[]'::jsonb"))
     loyalty_after: Mapped[int] = mapped_column(nullable=False)
     safety_after: Mapped[int] = mapped_column(nullable=False)
     score_delta: Mapped[int] = mapped_column(nullable=False)

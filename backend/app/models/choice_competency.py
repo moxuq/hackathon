@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from .base import Base
 
 
-class ChoiceCompetencie(Base):
+class ChoiceCompetency(Base):
     __tablename__ = 'choicecompotencies'
 
     choice_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('choices.id'), primary_key=True)
