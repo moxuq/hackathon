@@ -1,8 +1,8 @@
 from datetime import datetime
 from enum import Enum
 
+from sqlalchemy import DateTime, ForeignKey, String, func
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
@@ -15,8 +15,9 @@ class GroupsType(str, Enum):
 
 class Group(Base):
     __tablename__ = 'groups'
-    id: Mapped[str] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(nullable=False)
+
+    id: Mapped[str] = mapped_column(String(20), primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
     type: Mapped[GroupsType] = mapped_column(SQLEnum(GroupsType), nullable=False)
-    parent_id: Mapped[str] = mapped_column(ForeignKey('groups.id'))
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    parent_id: Mapped[str | None] = mapped_column(ForeignKey('groups.id'), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),server_default=func.now())
