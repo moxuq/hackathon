@@ -1,8 +1,8 @@
 """Initial models
 
-Revision ID: fd46db4b3368
+Revision ID: 2daeb734a120
 Revises: 
-Create Date: 2026-09-25 23:12:21.889228
+Create Date: 2026-09-25 23:17:53.078205
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = 'fd46db4b3368'
+revision: str = '2daeb734a120'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -164,7 +164,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('user_id', 'competency_code')
     )
-    op.create_table('choicecompotencies',
+    op.create_table('choice_competencies',
     sa.Column('choice_id', sa.Uuid(), nullable=False),
     sa.Column('competency_code', sa.String(length=50), nullable=False),
     sa.Column('delta', sa.Integer(), nullable=False),
@@ -216,7 +216,7 @@ def downgrade() -> None:
     op.drop_table('user_achievements')
     op.drop_index('ix_session_events_session_id_created_at', table_name='session_events')
     op.drop_table('session_events')
-    op.drop_table('choicecompotencies')
+    op.drop_table('choice_competencies')
     op.drop_table('user_competency_progress')
     op.drop_index('ix_play_sessions_user_id', table_name='play_sessions')
     op.drop_index('ix_play_sessions_state', table_name='play_sessions')

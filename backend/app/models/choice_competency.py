@@ -7,7 +7,7 @@ from .base import Base
 
 
 class ChoiceCompetency(Base):
-    __tablename__ = 'choicecompotencies'
+    __tablename__ = 'choice_competencies'
 
     choice_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('choices.id'), primary_key=True)
     competency_code: Mapped[str] = mapped_column(ForeignKey('competencies.code'), primary_key=True)
