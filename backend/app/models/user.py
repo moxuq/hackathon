@@ -19,7 +19,11 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     display_name: Mapped[str] = mapped_column(String(50), nullable=False)
-    role: Mapped[UsersRoles] = mapped_column(SQLEnum(UsersRoles), nullable=False, default=UsersRoles.CONDUCTOR, server_default=UsersRoles.CONDUCTOR.value)
+    role: Mapped[UsersRoles] = mapped_column(
+        SQLEnum(UsersRoles, values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
+        server_default=UsersRoles.CONDUCTOR.value,
+    )
     group_id: Mapped[str] = mapped_column(ForeignKey('groups.id'), nullable=False, index=True)
     level: Mapped[int] = mapped_column(nullable=False, server_default=text('1'))
     xp: Mapped[int] = mapped_column(nullable=False, server_default=text('0'))
