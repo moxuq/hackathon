@@ -1,7 +1,7 @@
 """Initial models
 
 Revision ID: 2daeb734a120
-Revises: 
+Revises:
 Create Date: 2026-09-25 23:17:53.078205
 
 """
@@ -53,7 +53,7 @@ def upgrade() -> None:
     sa.Column('title', sa.String(length=100), nullable=False),
     sa.Column('description', sa.String(length=1000), nullable=False),
     sa.Column('version', sa.Integer(), server_default=sa.text('1'), nullable=False),
-    sa.Column('difficulty', sa.String(), nullable=True),
+    sa.Column('difficulty', sa.String(length=20), nullable=True),
     sa.Column('is_active', sa.Boolean(), server_default=sa.text('true'), nullable=False),
     sa.Column('start_node_key', sa.String(length=50), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
