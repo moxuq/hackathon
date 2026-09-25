@@ -7,7 +7,7 @@ from .base import Base
 class Achievement(Base):
     __tablename__ = 'achievements'
 
-    code: Mapped[str] = mapped_column(String(50),primary_key=True)
+    code: Mapped[str] = mapped_column(String(50), primary_key=True)
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str] = mapped_column(String(1000), nullable=False)
     condition_code: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
