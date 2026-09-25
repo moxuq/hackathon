@@ -1,6 +1,5 @@
 import uuid
 from datetime import datetime
-from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict
 
