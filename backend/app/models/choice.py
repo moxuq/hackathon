@@ -10,14 +10,8 @@ from .base import Base
 class Choice(Base):
     __tablename__ = 'choices'
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        primary_key=True,
-        server_default=text('gen_random_uuid()'),
-    )
-    node_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey('scenario_nodes.id'),
-        nullable=False,
-    )
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, server_default=text('gen_random_uuid()'))
+    node_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('scenario_nodes.id'), nullable=False)
     choice_key: Mapped[str] = mapped_column(String(50), nullable=False)
     choice_text: Mapped[str] = mapped_column(String(255), nullable=False)
     effects: Mapped[JSONB] = mapped_column(nullable=False)
