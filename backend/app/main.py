@@ -1,5 +1,6 @@
-from app.api.v1.auth import auth_router
 from fastapi import FastAPI
+
+from .api.v1.router import api_routers
 
 app = FastAPI(
     title='Геймифицированный тренажёр для проводников ВСМ',
@@ -7,7 +8,7 @@ app = FastAPI(
     version='0.1.0',
 )
 
-app.include_router(auth_router)
+app.include_router(api_routers)
 
 
 @app.get('/health', tags=['Summary'])

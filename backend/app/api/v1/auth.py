@@ -20,7 +20,7 @@ auth_router = APIRouter(prefix='/api/v1/auth', tags=['Auth'])
             422: {'description': 'Некорректные данные или группа не найдена'},
             500: {'description': 'Дефолтная группа не найдена. Проверьте сиды'},
         })
-async def post_register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
+async def post_register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):  # noqa: B008
     new_user = await register(db, data)
     new_token = create_access_token(new_user.id)
     validated_user = UserResponse.model_validate(new_user)
@@ -33,7 +33,7 @@ async def post_register(data: RegisterRequest, db: AsyncSession = Depends(get_db
             401: {'description': 'Неверный email или пароль'},
             422: {'description': 'Некорректные данные'},
         })
-async def post_login(data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
+async def post_login(data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):  # noqa: B008
     user = await authenticate_user(db, data.username, data.password)
     token = create_access_token(user.id)
     validated_user = UserResponse.model_validate(user)
@@ -43,5 +43,5 @@ async def post_login(data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
 @auth_router.get('/me', status_code=status.HTTP_200_OK, response_model=UserResponse,
     summary='Получить текущего пользователя', description='Возвращает данные пользователя по JWT токену из заголовка Authorization',
     responses={401: {'description': 'Токен отсутствует, невалиден или истёк'}})
-async def get_me(current_user: User = Depends(get_current_user)):
+async def get_me(current_user: User = Depends(get_current_user)):  # noqa: B008
     return UserResponse.model_validate(current_user)
