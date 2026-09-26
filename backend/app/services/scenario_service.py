@@ -1,13 +1,23 @@
 import uuid
 from collections import defaultdict
 
+from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.app.models.choice import Choice
+from backend.app.models.scenario_node import ScenarioNode
+
+from ..models.competency import Competency
 from ..models.play_session import PlaySession
 from ..models.scenario import Scenario
 from ..models.scenario_competency import ScenarioCompetency
-from ..schemas.scenario import ScenarioDetailResponse, ScenarioListItem, ScenarioListResponse
+from ..schemas.scenario import (
+    ScenarioCompetencyItem,
+    ScenarioDetailResponse,
+    ScenarioListItem,
+    ScenarioListResponse,
+)
 
 
 async def get_active_scenarios(db: AsyncSession, user_id: uuid.UUID) -> ScenarioListResponse:
@@ -25,9 +35,7 @@ async def get_active_scenarios(db: AsyncSession, user_id: uuid.UUID) -> Scenario
     best_scores_rows = (
         await db.execute(
             select(PlaySession.scenario_id,func.max(PlaySession.score))
-            .where(
-                PlaySession.user_id == user_id,
-                PlaySession.state.in_(['completed', 'failed']),
+            .where(PlaySession.user_id == user_id, PlaySession.state.in_(['completed', 'failed']),
             ).group_by(PlaySession.scenario_id)
         )
     ).all()
@@ -43,4 +51,36 @@ async def get_active_scenarios(db: AsyncSession, user_id: uuid.UUID) -> Scenario
 
 
 async def get_scenario_detail(db: AsyncSession, scenario_id: str, user_id: uuid.UUID) -> ScenarioDetailResponse:
-    pass
+    scenario = (await db.execute(select(Scenario).where(Scenario.id == scenario_id))).scalar_one_or_none()
+    if scenario is None or (scenario is not None and scenario.is_active == False):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Scenario not found')
+    competency_rows = (await db.execute(select(ScenarioCompetency, Competency).where(ScenarioCompetency.scenario_id == scenario_id)
+        .join(Competency, ScenarioCompetency.competency_code == Competency.code))
+    ).all()
+    competencies = [ScenarioCompetencyItem(code=sc.competency_code, title=comp.title, weight=sc.weight)
+        for sc, comp in competency_rows
+    ]
+    nodes_count = (await db.execute(select(func.count(ScenarioNode.id))
+        .where(ScenarioNode.scenario_id == scenario_id))
+    ).scalar_one()
+    choices_count = (await db.execute(select(func.count(Choice.id))
+        .join(ScenarioNode, Choice.node_id == ScenarioNode.id))
+    ).scalar_one()
+    best_score = (await db.execute(select(func.max(PlaySession.score))
+        .where(PlaySession.scenario_id == scenario_id, PlaySession.user_id == user_id, PlaySession.state.in_(['completed', 'failed'])))
+    ).scalar_one_or_none()
+    sessions_completed = (await db.execute(select(func.count(PlaySession.id))
+        .where(PlaySession.scenario_id == scenario_id, PlaySession.user_id == user_id, PlaySession.state == 'completed'))
+    ).scalar_one()
+    return ScenarioDetailResponse(
+            id=scenario.id,
+            title=scenario.title,
+            description=scenario.description,
+            difficulty=scenario.difficulty,
+            version=scenario.version,
+            competencies=competencies,
+            nodes_count=nodes_count,
+            choices_count=choices_count,
+            best_score=best_score,
+            sessions_completed=sessions_completed,
+    )
