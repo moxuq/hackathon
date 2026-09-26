@@ -24,16 +24,3 @@ class AuthResponse(BaseModel):
     user: UserResponse
     access_token: str
     token_type: str = 'bearer'
-
-class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str
-
-    @field_validator('email', mode='before')
-    @classmethod
-    def normalize_email(cls, value: Any) -> Any:
-        if isinstance(value, str):
-            return value.strip().lower()
-        return value
-
-    model_config = ConfigDict(extra='forbid')

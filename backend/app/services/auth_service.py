@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,7 +11,7 @@ from ..models.group import Group
 from ..models.notification import Notification, NotificationTypes
 from ..models.user import User
 from ..models.user_competency_progress import UserCompetencyProgress
-from ..schemas.auth import LoginRequest, RegisterRequest
+from ..schemas.auth import RegisterRequest
 
 
 async def register(db: AsyncSession, data: RegisterRequest) -> User:
@@ -47,10 +49,10 @@ async def register(db: AsyncSession, data: RegisterRequest) -> User:
     await db.refresh(new_user)
     return new_user
 
-async def authenticate_user(db: AsyncSession, data: LoginRequest) -> User:
-    user_db = (await db.execute(select(User).where(User.email == data.email))).scalar_one_or_none()
+async def authenticate_user(db: AsyncSession, email: str, password: str) -> User:
+    user_db = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
     if user_db is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Email or password is incorrect')
-    if not verify_password(data.password, user_db.password_hash):
+    if not verify_password(password, user_db.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Email or password is incorrect')
     return user_db

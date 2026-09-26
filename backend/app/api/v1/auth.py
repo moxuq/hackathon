@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.security import create_access_token
 from ...models.base import get_db
 from ...models.user import User
-from ...schemas.auth import AuthResponse, LoginRequest, RegisterRequest
+from ...schemas.auth import AuthResponse, RegisterRequest
 from ...schemas.user import UserResponse
 from ...services.auth_service import authenticate_user, register
 from ..deps import get_current_user
@@ -32,8 +33,8 @@ async def post_register(data: RegisterRequest, db: AsyncSession = Depends(get_db
             401: {'description': 'Неверный email или пароль'},
             422: {'description': 'Некорректные данные'},
         })
-async def post_login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
-    user = await authenticate_user(db, data)
+async def post_login(data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
+    user = await authenticate_user(db, data.username, data.password)
     token = create_access_token(user.id)
     validated_user = UserResponse.model_validate(user)
     return AuthResponse(user=validated_user, access_token=token)
