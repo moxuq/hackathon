@@ -69,6 +69,7 @@ async def get_scenario_detail(db: AsyncSession, scenario_id: str, user_id: uuid.
 
     nodes_count = (await db.execute(select(func.count(ScenarioNode.id))
         .where(ScenarioNode.scenario_id == scenario_id))
+
     ).scalar_one()
 
     choices_count = (await db.execute(select(func.count(Choice.id))
