@@ -33,10 +33,7 @@ async def get_active_scenarios(db: AsyncSession, user_id: uuid.UUID) -> Scenario
 
     best_scores_rows = (await db.execute(select(PlaySession.scenario_id, func.max(PlaySession.score))
             .where(PlaySession.user_id == user_id,
-                PlaySession.state.in_([
-                    PlaySessionStates.COMPLETED,
-                    PlaySessionStates.FAILED,
-                ]),
+                PlaySession.state.in_([PlaySessionStates.COMPLETED,PlaySessionStates.FAILED]),
             ).group_by(PlaySession.scenario_id))
     ).all()
     best_scores_map = {row[0]: row[1] for row in best_scores_rows}
@@ -69,21 +66,17 @@ async def get_scenario_detail(db: AsyncSession, scenario_id: str, user_id: uuid.
 
     nodes_count = (await db.execute(select(func.count(ScenarioNode.id))
         .where(ScenarioNode.scenario_id == scenario_id))
-
     ).scalar_one()
 
     choices_count = (await db.execute(select(func.count(Choice.id))
-            .join(ScenarioNode, Choice.node_id == ScenarioNode.id)
-            .where(ScenarioNode.scenario_id == scenario_id))
+        .join(ScenarioNode, Choice.node_id == ScenarioNode.id)
+        .where(ScenarioNode.scenario_id == scenario_id))
     ).scalar_one()
 
     best_score = (await db.execute(select(func.max(PlaySession.score))
             .where(PlaySession.scenario_id == scenario_id,
                 PlaySession.user_id == user_id,
-                PlaySession.state.in_([
-                    PlaySessionStates.COMPLETED,
-                    PlaySessionStates.FAILED,
-                ])))
+                PlaySession.state.in_([PlaySessionStates.COMPLETED, PlaySessionStates.FAILED])))
     ).scalar_one_or_none()
 
     sessions_completed = (await db.execute(select(func.count(PlaySession.id))

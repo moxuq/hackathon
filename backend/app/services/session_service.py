@@ -1,5 +1,5 @@
-from collections import defaultdict
 import uuid
+from collections import defaultdict
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
@@ -14,17 +14,12 @@ from ..models.scenario_node import ScenarioNode
 from ..models.session_event import SessionEvent
 from ..schemas.session import (
     AchievementItem,
-    ChoiceItem,
-    ChoiceRequest,
-    ChoiceResultResponse,
     CompetencyProgressItem,
-    NodeResponse,
     SessionDebriefResponse,
     SessionEventItem,
     SessionResponse,
     SessionStartRequest,
 )
-from .scenario_service import get_active_scenarios
 
 
 async def start_session(db: AsyncSession, user_id: uuid.UUID,data: SessionStartRequest) -> tuple[SessionResponse, bool]:
@@ -143,13 +138,13 @@ async def get_session_debrief(db: AsyncSession, session_id: uuid.UUID, user_id: 
         for a in achievements_rows
     ]
 
-    reccomendations = []
+    recommendations = []
     for cp in competency_progress:
         if cp.delta <= 0:
-            reccomendations.append(f'Рекомендуется повторить сценарий для улучшения компетенции «{cp.title}»')
+            recommendations.append(f'Рекомендуется повторить сценарий для улучшения компетенции «{cp.title}»')
 
     if session.state == PlaySessionStates.FAILED:
-        reccomendations.append('Сценарий не завершён успешно. Попробуйте ещё раз, обращая внимание на безопасность')
+        recommendations.append('Сценарий не завершён успешно. Попробуйте ещё раз, обращая внимание на безопасность')
 
     return SessionDebriefResponse(
             session_id=session.id,
@@ -162,5 +157,5 @@ async def get_session_debrief(db: AsyncSession, session_id: uuid.UUID, user_id: 
             events=event_items,
             competency_progress=competency_progress,
             achievements_unlocked=achievements_unlocked,
-            recommendations=reccomendations
+            recommendations=recommendations
         )
