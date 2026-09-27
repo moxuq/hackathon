@@ -18,6 +18,7 @@ from ..schemas.session import (
     CompetencyEffectItem,
     SessionResponse,
 )
+from .achievement_service import evaluate_achievements
 
 
 def clamp(value: int, min_value: int, max_value: int) -> int:
@@ -140,8 +141,8 @@ async def apply_choice(db: AsyncSession, session_id: uuid.UUID, user_id: uuid.UU
         )
         db.add(finish_event)
 
-        # TODO: вызвать вспомогательные сервисы в той же транзакции
-        # await achievement_evaluator.evaluate(db, session.id, user_id)
+        new_achievements = await evaluate_achievements(db, user_id, session)
+
         # await level_service.add_xp(db, user_id, session.score)
         # await notification_service.create_achievements(db, user_id)
         # await leaderboard_service.update(db, user_id)

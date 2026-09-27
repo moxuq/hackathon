@@ -7,7 +7,7 @@ from ...schemas.profile import ProfileResponse, SessionHistoryResponse
 from ...services.profile_service import get_user_profile, get_user_sessions_history
 from ..deps import get_current_user
 
-profile_router = APIRouter(prefix="/api/v1/profile", tags=["profile"])
+profile_router = APIRouter(prefix="/api/v1/profile", tags=["Profile"])
 
 
 @profile_router.get("/me", status_code=status.HTTP_200_OK, response_model=ProfileResponse,

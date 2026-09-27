@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from .achievements import achievement_router
 from .analytics import analytics_router
 from .auth import auth_router
 from .profile import profile_router
@@ -12,3 +13,4 @@ api_routers.include_router(scenarios_router)
 api_routers.include_router(session_router)
 api_routers.include_router(analytics_router)
 api_routers.include_router(profile_router)
+api_routers.include_router(achievement_router)

@@ -14,7 +14,7 @@ from ...services.analytics_service import (
 )
 from ..deps import get_current_user, get_db
 
-analytics_router = APIRouter(prefix="/api/v1/analytics", tags=["analytics"])
+analytics_router = APIRouter(prefix="/api/v1/analytics", tags=["Analytics"])
 
 
 @analytics_router.get("/me", status_code=status.HTTP_200_OK, response_model=AnalyticsResponse,
