@@ -19,6 +19,7 @@ from ..schemas.session import (
     SessionResponse,
 )
 from .achievement_service import evaluate_achievements
+from .notification_service import create_notification
 
 
 def clamp(value: int, min_value: int, max_value: int) -> int:
@@ -142,10 +143,14 @@ async def apply_choice(db: AsyncSession, session_id: uuid.UUID, user_id: uuid.UU
         db.add(finish_event)
 
         new_achievements = await evaluate_achievements(db, user_id, session)
-
-        # await level_service.add_xp(db, user_id, session.score)
-        # await notification_service.create_achievements(db, user_id)
-        # await leaderboard_service.update(db, user_id)
+        for achievement in new_achievements:
+            await create_notification(
+                db,
+                user_id,
+                notification_type='achievement',
+                title=f'Новая ачивка: {achievement.title}',
+                body=achievement.description,
+            )
 
     try:
         await db.commit()
