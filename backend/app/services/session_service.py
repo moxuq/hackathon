@@ -1,20 +1,23 @@
 import uuid
 from collections import defaultdict
+from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models.achievement import Achievement
-from backend.app.models.user_achievement import UserAchievement
-
+from ..models.achievement import Achievement
+from ..models.choice import Choice
 from ..models.play_session import PlaySession, PlaySessionStates
 from ..models.scenario import Scenario
 from ..models.scenario_node import ScenarioNode
 from ..models.session_event import SessionEvent
+from ..models.user_achievement import UserAchievement
 from ..schemas.session import (
     AchievementItem,
+    ChoiceItem,
     CompetencyProgressItem,
+    NodeResponse,
     SessionDebriefResponse,
     SessionEventItem,
     SessionResponse,
@@ -22,7 +25,7 @@ from ..schemas.session import (
 )
 
 
-async def start_session(db: AsyncSession, user_id: uuid.UUID,data: SessionStartRequest) -> tuple[SessionResponse, bool]:
+async def start_session(db: AsyncSession, user_id: uuid.UUID, data: SessionStartRequest) -> tuple[SessionResponse, bool]:
     scenario = (await db.execute(select(Scenario)
         .where(Scenario.id == data.scenario_id, Scenario.is_active.is_(True)))
     ).scalar_one_or_none()
@@ -94,7 +97,7 @@ async def get_session_debrief(db: AsyncSession, session_id: uuid.UUID, user_id: 
         duration_sec = 0
 
     event_items = [SessionEventItem(
-        event_type=e.event_type.value if hasattr(e.event_type, 'values') else str(e.event_type),
+        event_type=e.event_type.value if hasattr(e.event_type, 'value') else str(e.event_type),
         node_key=e.node_key,
         choice_key=e.choice_key,
         loyalty_after=e.loyalty_after,
@@ -159,3 +162,63 @@ async def get_session_debrief(db: AsyncSession, session_id: uuid.UUID, user_id: 
             achievements_unlocked=achievements_unlocked,
             recommendations=recommendations
         )
+
+
+async def get_current_node(db: AsyncSession, session_id: uuid.UUID, user_id: uuid.UUID) -> NodeResponse:
+    session = (await db.execute(select(PlaySession).where(PlaySession.id == session_id))).scalar_one_or_none()
+
+    if session is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Session not found')
+    if session.user_id != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='No access')
+    if session.state != PlaySessionStates.ACTIVE:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Session is not active')
+
+    current_node = (await db.execute(select(ScenarioNode).where(ScenarioNode.scenario_id == session.scenario_id, ScenarioNode.node_key == session.current_node_key))).scalar_one_or_none()
+
+    if current_node is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Current node not found')
+
+    choices = (await db.execute(select(Choice)
+            .where(Choice.node_id == current_node.id, Choice.is_visible.is_(True))
+            .order_by(Choice.sort_order))
+    ).scalars().all()
+
+    timer_left_sec = None
+    if session.deadline is not None:
+        timer_left_sec = max(0, int((session.deadline - datetime.now(timezone.utc)).total_seconds()))
+
+    return NodeResponse(
+        node_key=current_node.node_key,
+        type=current_node.type.value,
+        text=current_node.node_text,
+        timer_sec=current_node.timer_sec,
+        timer_left_sec=timer_left_sec,
+        choices=[
+            ChoiceItem(choice_key=c.choice_key, choice_text=c.choice_text, recommendation=c.recommendation, is_visible=c.is_visible)
+            for c in choices
+        ],
+    )
+
+
+async def get_active_sessions(db: AsyncSession, user_id: uuid.UUID, scenario_id: str | None = None) -> list[SessionResponse]:
+    query = select(PlaySession).where(PlaySession.user_id == user_id, PlaySession.state == PlaySessionStates.ACTIVE)
+
+    if scenario_id is not None:
+        query = query.where(PlaySession.scenario_id == scenario_id)
+
+    sessions = (await db.execute(query)).scalars().all()
+
+    return [
+        SessionResponse(
+            session_id=s.id,
+            scenario_id=s.scenario_id,
+            current_node_key=s.current_node_key,
+            state=s.state.value,
+            loyalty=s.loyalty,
+            safety=s.safety,
+            score=s.score,
+            deadline=s.deadline,
+            started_at=s.started_at,
+            is_restarted=False)
+        for s in sessions]

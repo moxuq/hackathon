@@ -14,6 +14,7 @@ class PlaySessionStates(str, Enum):
     COMPLETED = 'completed'
     FAILED = 'failed'
     EXPIRED = 'expired'
+    ABANDONED = 'abandoned'
 
 class PlaySession(Base):
     __tablename__ = 'play_sessions'
