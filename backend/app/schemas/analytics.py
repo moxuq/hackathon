@@ -49,7 +49,7 @@ class CompetencyEffectHistoryItem(BaseModel):
 class ProgressHistoryItem(BaseModel):
     session_id: uuid.UUID
     scenario_id: str
-    finished_at: datetime
+    finished_at: datetime | None = None
     competency_effects: list[CompetencyEffectHistoryItem]
     score_delta: int
 
