@@ -9,7 +9,7 @@ from ..deps import get_current_user
 
 scenarios_router = APIRouter(prefix='/api/v1/scenarios', tags=['Scenarios'])
 
-@scenarios_router.get('/', status_code=status.HTTP_200_OK, response_model=ScenarioListResponse,
+@scenarios_router.get('', status_code=status.HTTP_200_OK, response_model=ScenarioListResponse,
     summary='Список активных сценариев', description='Возвращает все активные сценарии с краткой информацией и лучшим счётом текущего пользователя',
     responses={
             401: {'description': 'Токен отсутствует или невалиден'},
