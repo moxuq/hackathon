@@ -1,1 +1,1 @@
-DEFAULT_GROUP_ID = 1
+DEFAULT_GROUP_ID: str = 'vsm_default'
